@@ -1,77 +1,86 @@
 java c
 ECE5550: Applied Kalman Filtering 
-KALMAN FILTER APPLICATIONS 
-10.1: Examples of Kalman ﬁlters 
-■ To wrap up the course, we look at several of the applications introduced in notes chapter 1, but in more detail.
-■ My students and I have been directly involved with these examples.
-Tracking marker dots on actors 
-■ State: x , y position and velocity of dots in frame.
-Observation: x , y positions of dots in frame. (unlabeled).
-Issues: Data association, tracking when dots are obscured.
-■ Images containing actors with relective marker dots arrive for processing at 30 frames per second.  
+SIMULTANEOUS STATE AND PARAMETER ESTIMATION USING KALMAN FILTERS
+9.1: Parameters versus states 
+■ Until now, we have   assumed that the   state-space   model   of the   system whose state we are estimating is known   and   constant.
+■ However, the system   model   may   not be entirely   known:   We   may wish   to adapt   numeric values within the   model to better   match the   model’s   behavior. to the true system’s behavior.
+■ Also, certain values within the system may change very   slowly   over      the   lifetime of the system—it would be good to track those   changes.
+■ For example, consider a battery cell.   Its   state-of-charge can   traverse   its entire   range within   minutes.   However, its   internal   resistance   might   change as little as 20%   in   a   decade   or   more   of   regular   use.
+• The quantities that tend to change quickly   comprise the state of   the system,   and
+• The quantities that tend to change slowly   comprise the
+time-varying parameters of the system.
+■ We know that   Kalman ﬁlters   may be   used to estimate the   state   of   a dynamic system given known parameters and   noisy   measurements.
+■ We   may also use   (nonlinear)   Kalman ﬁlters to estimate parameters   given a known state   and   noisy   measurements.
+■ In this section of   notes we ﬁrst   consider   how to   estimate   the   parameters of a system   if   its   state   is   known.
+■ Next, we consider how to simultaneously estimate both the state   and   parameters of the system using two different approaches.
+The generic approach to parameter estimation 
+■ We denote the true parameters of a   particular   model   by θ   .
+■ We will use   Kalman ﬁltering techniques to estimate the parameters
+much like we have estimated the state.   Therefore, we   require a   model   of the dynamics of the   parameters.
+■ By assumption, parameters change very slowly, so we   model them   as   constant with some small   perturbation:
+θk = θk−1   + rk−1   .
+■ The small white   noise   input rk is ﬁctitious, but   models the   slow   drift   in      the parameters of the system plus the inﬁdelity   of the   model   structure.
+■ The output equation   required for   Kalman-ﬁlter system identiﬁcation   must be a   measurable function of the system parameters.   We   use
+dk = hk (xk, uk,θ   , ek ),
+where h(·) is the output equation of   the   system   model   being               identiﬁed, and ek models the sensor   noise and   modeling   error.
+■ Note that dk is usually the same   measurement   as zk ,   but we   maintain
+a distinction here in case separate outputs   are   used.   Then,
+Dk = {d0, d1   , . . . , dk }.   Also,   note   that ek and   vk often   play   the   same role, but are   considered distinct   here.
+■ We also slightly   revi代 写ECE5550: Applied Kalman Filtering SIMULTANEOUS STATE AND PARAMETER ESTIMATION USING KALMAN FILTERS
+代做程序编程语言se the   mathematical model of system   dynamics
+xk = fk−1(xk−1   , uk−1,θ,wk−1)
+z k = hk (xk, uk,θ,vk ),
+to explicitly include the   parameters θ in the   model.
+■ Non-time-varying numeric values   required by the   model   may   be   embedded within f (·) and h(·), and are   not   included   in θ   .
+9.2: EKF for parameter estimation 
+■ Here, we show how to   use   EKF   for   parameter   estimation.
+■ As always, we proceed by deriving the   six   essential steps   of   sequential inference.
+EKF step 1a: Parameter   estimate time   update.
+■ The parameter prediction step   is approximated   as
 
-■ Dennis’ ﬁrst challenge was detecting targets in a 2D camera ﬁeld in an efﬁcient way.
-■ The standard NTSC scan order for when pixels arrive is shown to the right.
+■ This makes sense, since the parameters   are assumed constant. EKF step 1b: Error covariance time   update.
+■ The covariance prediction step is accomplished by first computing θ˜k−.k— .
 
-■ Dennis created an efﬁcient centroid
-calculation algorithm that worked in real time as the pixels arrived (in scan order), and can handle up to a pre-speciﬁed maximum number of simultaneous targets.
-■ The following is an example illustrating some of the issues
+■ We then directly compute the desired covariance
 
-■ After scanning row 5, there are three centroid candidates; after scanning row 6, two are joined, to leave only two candidates.
-■ The next issue was the target dynamic model to use. Dennis tried both NCV and NCA models;
-Sensor noise was determined to be on the order of 1/2 pixel;
-Σ was selected by evaluating the statistics of accelerations and jerks in a database of typical motion capture scenarios.
-■ The next issue was how to associate centroid position measurements to individual target tracks.
-Dennis used a maximum-likelihood association method. That is, for every centroid-target pair, he calculated
-where x is the centroid measurement, and x is the target’s present state estimate, and Σx is the target’s present covariance estimate.  He then formed a table of likelihood values
+■ The time-updated covariance has additional uncertainty due to the   ﬁctitious   noise “driving” the parameter values.
+EKF step 1c: Output   estimate.
+■ The system output is   estimated to   be
+d(^)k = E[h(xk, uk,θ   , ek )   |   Dk —   1]
+≈ hk (xk , uk ,   θ(^)k— , e-k ).
+■ That is,   it   is assumed that propagatingθ(^)k— and   the   mean   estimation
+error is the best approximation to   estimating   the   output.
+EKF step 2a: Estimator   gain   matrix.
+■ The output prediction error   may then be   approximated
 
-He found the table maximum value, and made that association,
-and set all entries in that row and column to zero; he repeated until all measurements were accounted for.
-Occluded targets (missing measurements) were handled by skipping measurement updates for those target tracks.
-■ Dennis found that the NCV model worked best for this application, and the results were outstanding.  
+using again a Taylor-series expansion on the ﬁrst   term.
 
-■ Ongoing challenges in multi-target tracking:
-Efﬁciency of the data association process in particular, and of multi-target tracking in general.
-For example, there are an estimated 80,000,000 objects 1cm
-across or larger orbitin代 写ECE5550: Applied Kalman Filtering KALMAN FILTER APPLICATIONSPython
-代做程序编程语言g earth (large enough to disable a satellite). We presently track about 18,000 of the largest ones. Orbit
-estimation, collision prediction are hot topics, but very difﬁcult too. Furthermore, beyond assessing where an object is, being able to  say what it is doing and what that means are two very important questions to answer.
-Localizing bad guys (or, search and rescue) 
-■ State: x , y position and velocity
-Observation: Direction (angle) from UAV to target.
-Issues: Nonlinear relationship between measurements and position; measurements arriving to KF out-of-sequence.
+■ From this, we can compute such necessary   quantities   as
 
-■ Multiple UAVs search a pre-deﬁned
-geographic region for targets of interest.
-■ Heterogeneous sensors are used: passive radar, camera, IR.
-■ All sensors measure only angle to target (not x , y position, nor range to target).
-■ For the targets, a modiﬁed NCV model was used
+■ These terms may be combined to   get the   Kalman gain
 
-■ Note (1) that the output equation is nonlinear, and (2) that a baseline continuous-time model is used since measurements are not
-necessarily aligned with a pre-deﬁned sample rate.
-■ SPKF handles nonlinear output equation, but still needed to be very careful with modulo-2π issues in measurements (a gigantic pain).
-■ The state equation, evaluated over a non-constant time interval, is
-
-■ Process noise integrated over a non-constant time interval is incorporated as
-
-■ Initializing the target state using a single measurement of arrival angle was an issue
-
-■ We assume a uniform. distribution on R  ~ U (0, r0), where r0  is the sensor range.
-■ We model the sensor reading Θ  = Θ  + Θnoise  where Θnoise  is a  Gaussian distribution with zero mean and standard deviation σv known by the sensor.
-■ Then, assuming that R and Θnoise  are independent,
-
-■ Without loss of generality, we can assume that the sensor reading  Θ    0, and then rotate the ﬁnal result by the true sensor reading to compensate. For the above assumptions, the ﬁnal answer is:
-
-■ Using similar reasoning, the covariance matrix (for these two states) may be found to be:
-
-■ Furthermore, measurements from cooperating UAVs arrived to the fusion process out-of-sequence due to communication latencies.
-■ Developed “out-of-order SPKF” (O3 SPKF) to handle this issue.
-
-■ Related ongoing challenges:
-Knowing UAV (self) position in GPS deprived scenarios.
-Target modeling with constraints (e.g., railroad problem), and robust estimation for same.
+■ Note, by the   chain   rule   of   total   differentials,
 
 
+■ But,
+
+■ The derivative calculations are   recursive in   nature, and   evolve   over   time as the state   evolves.
+■ The term dx0/dθ   is   initialized to zero unless side   information gives   a   better estimate of   its value.
+■ To calculateC(^)k(θ) for any speciﬁc   model structure, we   require   methods
+to calculate all of the above the   partial   derivatives   for   that   model.
+EKF step 2b: State estimate measurement   update.
+■ The ﬁfth step   is to compute the a posteriori state estimate by
+updating the a priori estimate using the estimator gain and   the   output   prediction error dk −   d(^)k 
+
+EKF step 2c: Error covariance measurement   update.
+■ Finally, the   updated covariance is   computed   as
+
+■ EKF for parameter estimation   is   summarized   in   a   later table.
+Notes: 
+■ We   initialize the parameter estimate with our best   information   re. the   parameter   value:   θ(^)0(十)   = E[θ0].
+■ We   initialize the parameter estimation error covariance   matrix:
+
+■ We also   initialize dx0   /dθ   = 0   unless side   information is   available.
 
 
 
